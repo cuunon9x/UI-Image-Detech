@@ -12,6 +12,7 @@ export class FileUpload {
   @State() imageUrl: string = '';
   @State() isCameraActive: boolean = false;
   @State() isLoading: boolean = false;
+  @State() useRearCamera: boolean = false;
   private canvasRef: HTMLCanvasElement;
   private videoRef: HTMLVideoElement;
 
@@ -69,6 +70,11 @@ export class FileUpload {
     }
   }
 
+  private toggleCamera() {
+    this.useRearCamera = !this.useRearCamera;
+    this.startCamera();
+  }
+
   private resetPage() {
     this.predictions = [];
     this.errorMessage = '';
@@ -76,6 +82,7 @@ export class FileUpload {
     this.isCameraActive = false;
     this.canvasRef.style.display = 'none';
     this.isLoading = false;
+    this.stopCamera();
     if (this.videoRef && this.videoRef.srcObject) {
       const stream = this.videoRef.srcObject as MediaStream;
       stream.getTracks().forEach(track => track.stop());
@@ -148,7 +155,7 @@ export class FileUpload {
   private startCamera() {
     this.isCameraActive = true;
     navigator.mediaDevices
-      .getUserMedia({ video: true })
+      .getUserMedia({ video: { facingMode: this.useRearCamera ? 'environment' : 'user' } })
       .then(stream => {
         this.videoRef.srcObject = stream;
         this.videoRef.play();
@@ -191,7 +198,7 @@ export class FileUpload {
 
         {this.isLoading && (
           <div class="loading">
-            <div class="spinner"></div> {/* Round loading spinner */}
+            <div class="spinner"></div>
           </div>
         )}
 
@@ -200,7 +207,11 @@ export class FileUpload {
         </button>
 
         {this.isCameraActive && <video class="video" ref={el => (this.videoRef = el as HTMLVideoElement)} autoplay playsinline></video>}
-
+        {this.isCameraActive && (
+          <button class="button toggle-camera" onClick={() => this.toggleCamera()}>
+            Switch Camera
+          </button>
+        )}
         {this.isCameraActive && (
           <button class="button capture-image" onClick={() => this.captureImage()}>
             Capture Image
@@ -213,11 +224,9 @@ export class FileUpload {
           </button>
         )}
 
-        {/* {this.imageUrl && ( */}
         <button class="button reset-page" onClick={() => this.resetPage()}>
           Reset Page
         </button>
-        {/* )} */}
 
         {this.errorMessage && <p class="error">{this.errorMessage}</p>}
         <canvas class="canvas" ref={el => (this.canvasRef = el as HTMLCanvasElement)}></canvas>
