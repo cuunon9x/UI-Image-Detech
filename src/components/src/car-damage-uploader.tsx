@@ -207,13 +207,13 @@ export class FileUpload {
         )}
 
         <button class="button start-camera" onClick={() => this.startCamera()}>
-          Start Camera
+          Use Camera
         </button>
 
         {this.isCameraActive && this.showCamera && <video class="video" ref={el => (this.videoRef = el as HTMLVideoElement)} autoplay playsinline></video>}
         {this.isCameraActive && (
           <button class="button toggle-camera" onClick={() => this.toggleCamera()}>
-            Use Camera
+            Switch Camera
           </button>
         )}
         {this.isCameraActive && (
