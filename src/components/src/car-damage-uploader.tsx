@@ -25,7 +25,7 @@ export class FileUpload {
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const response = await fetch('http://localhost:8000/predict/', {
+      const response = await fetch('https://imagedetech.onrender.com/predict/', {
         method: 'POST',
         body: formData,
       });
