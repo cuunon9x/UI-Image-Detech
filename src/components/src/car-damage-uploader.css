@@ -24,7 +24,7 @@
 /* Tiêu đề chính */
 h1 {
   text-align: center;
-  color: #333;
+  color: white;
   font-size: 1.8em;
   margin-top: 20px;
 }
@@ -89,6 +89,79 @@ input[type='file'] {
   transition: border-color 0.3s;
   width: 100%;
   max-width: 300px;
+}
+
+/* Nút bấm chung */
+.button {
+  display: inline-block;
+  padding: 10px 15px;
+  font-size: 1em;
+  color: white;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin: 5px;
+}
+
+.button:hover {
+  background-color: #0056b3;
+}
+
+/* Nút start camera */
+.start-camera {
+  background-color: #28a745;
+}
+
+.start-camera:hover {
+  background-color: #218838;
+}
+
+/* Nút capture image */
+.capture-image {
+  background-color: #ffc107;
+  color: black;
+}
+
+.capture-image:hover {
+  background-color: #e0a800;
+}
+
+/* Nút stop camera */
+.stop-camera {
+  background-color: #dc3545;
+}
+
+.stop-camera:hover {
+  background-color: #c82333;
+}
+
+/* Video hiển thị camera */
+.video {
+  display: block;
+  margin: 10px auto;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  max-width: 100%;
+}
+
+/* File input */
+.file-input {
+  display: block;
+  margin: 10px auto;
+  padding: 8px;
+  border: 2px solid #007bff;
+  border-radius: 5px;
+  background-color: #fff;
+  cursor: pointer;
+  transition: border-color 0.3s;
+  width: 100%;
+  max-width: 300px;
+}
+
+.file-input:hover {
+  border-color: #0056b3;
 }
 
 /* 📱 Mobile (dưới 600px) */

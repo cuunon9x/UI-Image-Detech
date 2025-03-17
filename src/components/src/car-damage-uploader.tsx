@@ -9,7 +9,9 @@ export class FileUpload {
   @State() predictions: any[] = [];
   @State() errorMessage: string = '';
   @State() imageUrl: string = '';
+  @State() isCameraActive: boolean = false;
   private canvasRef: HTMLCanvasElement;
+  private videoRef: HTMLVideoElement;
 
   private handleFileUpload(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -22,7 +24,6 @@ export class FileUpload {
   private async uploadFile(file: File) {
     const formData = new FormData();
     formData.append('file', file);
-
     try {
       const response = await fetch('http://localhost:8000/predict/', {
         method: 'POST',
@@ -36,11 +37,24 @@ export class FileUpload {
       const data = await response.json();
       this.predictions = data.predictions;
       this.errorMessage = '';
-      this.imageUrl = URL.createObjectURL(file); // Create URL for the uploaded image
-      this.loadImage(); // Load the image to get its dimensions
+      this.imageUrl = URL.createObjectURL(file);
+      this.loadImage();
     } catch (error) {
       this.errorMessage = 'Error uploading file: ' + error.message;
       this.predictions = [];
+    }
+  }
+
+  private resetPage() {
+    this.predictions = [];
+    this.errorMessage = '';
+    this.imageUrl = '';
+    this.isCameraActive = false;
+    this.canvasRef.style.display = 'none';
+    if (this.videoRef && this.videoRef.srcObject) {
+      const stream = this.videoRef.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      this.videoRef.srcObject = null;
     }
   }
 
@@ -48,48 +62,47 @@ export class FileUpload {
     const img = new Image();
     img.src = this.imageUrl;
     img.onload = () => {
-      this.drawBoundingBoxes(img); // Draw bounding boxes after loading the image
+      this.drawBoundingBoxes(img);
     };
+    this.canvasRef.style.display = 'block';
   }
 
   private drawBoundingBoxes(img: HTMLImageElement) {
     const canvas = this.canvasRef;
     const ctx = canvas.getContext('2d');
 
-    // Set canvas size to match the image size
     canvas.width = img.width;
     canvas.height = img.height;
 
-    // Clear the canvas and draw the image
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0);
 
-    // Set font size and style for the bounding box labels
-    ctx.font = 'bold 20px Arial'; // Change font size and style here
-    ctx.textBaseline = 'top'; // Align text to the top of the bounding box
+    ctx.font = 'bold 16px Arial';
+    ctx.textBaseline = 'top';
 
-    // Draw bounding boxes
-    this.predictions.forEach(prediction => {
-      const x = prediction.x - prediction.width / 2; // Center the box
-      const y = prediction.y - prediction.height / 2; // Center the box
-      ctx.beginPath();
-      ctx.rect(x, y, prediction.width, prediction.height);
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = 'rgba(242, 78, 7, 0.87)';
-      ctx.stroke();
-      ctx.fillStyle = 'rgba(96, 250, 109, 0.87)';
-      // ctx.fillText(`${prediction.label} - ${Math.round(prediction.confidence * 100)}%`, prediction.x, prediction.y > 10 ? prediction.y - 5 : 10);
-
-      // Draw the label at the top-left corner of the bounding box
-      this.drawWrappedText(ctx, `${prediction.label} ${Math.round(prediction.confidence * 100)}%`, x, y);
-      ctx.closePath();
-    });
+    if (this.predictions.length === 0 || this.predictions.every(prediction => prediction.confidence * 100 < 60)) {
+      ctx.fillStyle = 'red';
+      ctx.fillText('Image not recognized', canvas.width / 2 - 50, canvas.height / 2);
+    } else {
+      this.predictions.forEach(prediction => {
+        const x = prediction.x - prediction.width / 2;
+        const y = prediction.y - prediction.height / 2;
+        ctx.beginPath();
+        ctx.rect(x, y, prediction.width, prediction.height);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'rgba(242, 78, 7, 0.87)';
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(96, 250, 109, 0.87)';
+        this.drawWrappedText(ctx, `${prediction.label} ${Math.round(prediction.confidence * 100)}%`, x, y);
+        ctx.closePath();
+      });
+    }
   }
-  // Function to draw wrapped text
+
   private drawWrappedText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number = 100) {
     const words = text.split(' ');
     let line = '';
-    const lineHeight = 20; // Adjust line height as needed
+    const lineHeight = 20;
 
     for (let n = 0; n < words.length; n++) {
       const testLine = line + words[n] + ' ';
@@ -99,26 +112,78 @@ export class FileUpload {
       if (testWidth > maxWidth && n > 0) {
         ctx.fillText(line, x, y);
         line = words[n] + ' ';
-        y += lineHeight; // Move down for the next line
+        y += lineHeight;
       } else {
         line = testLine;
       }
     }
-    ctx.fillText(line, x, y); // Draw the last line
+    ctx.fillText(line, x, y);
+  }
+
+  private startCamera() {
+    this.isCameraActive = true;
+    navigator.mediaDevices
+      .getUserMedia({ video: true })
+      .then(stream => {
+        this.videoRef.srcObject = stream;
+        this.videoRef.play();
+      })
+      .catch(error => {
+        console.error('Error accessing camera:', error);
+        this.errorMessage = 'Failed to access camera';
+      });
+  }
+
+  private stopCamera() {
+    if (this.videoRef && this.videoRef.srcObject) {
+      const stream = this.videoRef.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      this.videoRef.srcObject = null;
+      this.isCameraActive = false;
+    }
+  }
+
+  private captureImage() {
+    const canvas = this.canvasRef;
+    const ctx = canvas.getContext('2d');
+    canvas.width = this.videoRef.videoWidth;
+    canvas.height = this.videoRef.videoHeight;
+    ctx.drawImage(this.videoRef, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob(blob => {
+      if (blob) {
+        this.uploadFile(new File([blob], 'capture.jpg', { type: 'image/jpeg' }));
+      }
+    }, 'image/jpeg');
   }
 
   render() {
     return (
-      <div>
-        <div class="header">This is test page to define car damage for ICO by TrinhCV</div>
-        <div class="container">
-          <h1>Car Damage Detection</h1>
-          <input type="file" accept="image/*" onInput={event => this.handleFileUpload(event)} />
-          {this.errorMessage && <p class="error">{this.errorMessage}</p>}
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
-            <canvas ref={el => (this.canvasRef = el as HTMLCanvasElement)}></canvas>
-          </div>
-        </div>
+      <div class="container">
+        <header class="header">
+          <h1>Car damage definitions for ICO testing, by TrinhCV.</h1>
+        </header>
+        <input type="file" class="file-input" accept="image/*" onInput={event => this.handleFileUpload(event)} />
+        <button class="button start-camera" onClick={() => this.startCamera()}>
+          Start Camera
+        </button>
+        {this.isCameraActive && <video class="video" ref={el => (this.videoRef = el as HTMLVideoElement)} autoplay playsinline></video>}
+        {this.isCameraActive && (
+          <button class="button capture-image" onClick={() => this.captureImage()}>
+            Capture Image
+          </button>
+        )}
+        {this.isCameraActive && (
+          <button class="button stop-camera" onClick={() => this.stopCamera()}>
+            Stop Camera
+          </button>
+        )}
+        {this.imageUrl && (
+          <button class="button reset-page" onClick={() => this.resetPage()}>
+            Reset Page
+          </button>
+        )}
+        {this.errorMessage && <p class="error">{this.errorMessage}</p>}
+        <canvas class="canvas" ref={el => (this.canvasRef = el as HTMLCanvasElement)}></canvas>
       </div>
     );
   }
