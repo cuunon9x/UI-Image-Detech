@@ -13,6 +13,7 @@ export class FileUpload {
   @State() isCameraActive: boolean = false;
   @State() isLoading: boolean = false;
   @State() useRearCamera: boolean = false;
+  @State() showCamera: boolean = true;
   private canvasRef: HTMLCanvasElement;
   private videoRef: HTMLVideoElement;
 
@@ -154,6 +155,7 @@ export class FileUpload {
 
   private startCamera() {
     this.isCameraActive = true;
+    this.showCamera = true;
     navigator.mediaDevices
       .getUserMedia({ video: { facingMode: this.useRearCamera ? 'environment' : 'user' } })
       .then(stream => {
@@ -176,11 +178,13 @@ export class FileUpload {
   }
 
   private captureImage() {
+    this.showCamera = false;
     const canvas = this.canvasRef;
     const ctx = canvas.getContext('2d');
     canvas.width = this.videoRef.videoWidth;
     canvas.height = this.videoRef.videoHeight;
     ctx.drawImage(this.videoRef, 0, 0, canvas.width, canvas.height);
+    this.stopCamera();
     canvas.toBlob(blob => {
       if (blob) {
         this.uploadFile(new File([blob], 'capture.jpg', { type: 'image/jpeg' }));
@@ -206,7 +210,7 @@ export class FileUpload {
           Start Camera
         </button>
 
-        {this.isCameraActive && <video class="video" ref={el => (this.videoRef = el as HTMLVideoElement)} autoplay playsinline></video>}
+        {this.isCameraActive && this.showCamera && <video class="video" ref={el => (this.videoRef = el as HTMLVideoElement)} autoplay playsinline></video>}
         {this.isCameraActive && (
           <button class="button toggle-camera" onClick={() => this.toggleCamera()}>
             Switch Camera
@@ -215,12 +219,6 @@ export class FileUpload {
         {this.isCameraActive && (
           <button class="button capture-image" onClick={() => this.captureImage()}>
             Capture Image
-          </button>
-        )}
-
-        {this.isCameraActive && (
-          <button class="button stop-camera" onClick={() => this.stopCamera()}>
-            Stop Camera
           </button>
         )}
 
