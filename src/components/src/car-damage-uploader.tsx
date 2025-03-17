@@ -10,6 +10,7 @@ export class FileUpload {
   @State() errorMessage: string = '';
   @State() imageUrl: string = '';
   @State() isCameraActive: boolean = false;
+  @State() isLoading: boolean = false;
   private canvasRef: HTMLCanvasElement;
   private videoRef: HTMLVideoElement;
 
@@ -25,12 +26,14 @@ export class FileUpload {
     const formData = new FormData();
     formData.append('file', file);
     try {
+      this.isLoading = true;
       const response = await fetch('https://imagedetech.onrender.com/predict/', {
         method: 'POST',
         body: formData,
       });
 
       if (!response.ok) {
+        this.isLoading = false;
         throw new Error('Network response was not ok');
       }
 
@@ -38,6 +41,7 @@ export class FileUpload {
       this.predictions = data.predictions;
       this.errorMessage = '';
       this.imageUrl = URL.createObjectURL(file);
+      this.isLoading = false;
       this.loadImage();
     } catch (error) {
       this.errorMessage = 'Error uploading file: ' + error.message;
@@ -163,25 +167,37 @@ export class FileUpload {
           <h1>Car damage definitions for ICO testing, by TrinhCV.</h1>
         </header>
         <input type="file" class="file-input" accept="image/*" onInput={event => this.handleFileUpload(event)} />
+
+        {this.isLoading && (
+          <div class="loading">
+            <div class="spinner"></div> {/* Round loading spinner */}
+          </div>
+        )}
+
         <button class="button start-camera" onClick={() => this.startCamera()}>
           Start Camera
         </button>
+
         {this.isCameraActive && <video class="video" ref={el => (this.videoRef = el as HTMLVideoElement)} autoplay playsinline></video>}
+
         {this.isCameraActive && (
           <button class="button capture-image" onClick={() => this.captureImage()}>
             Capture Image
           </button>
         )}
+
         {this.isCameraActive && (
           <button class="button stop-camera" onClick={() => this.stopCamera()}>
             Stop Camera
           </button>
         )}
+
         {this.imageUrl && (
           <button class="button reset-page" onClick={() => this.resetPage()}>
             Reset Page
           </button>
         )}
+
         {this.errorMessage && <p class="error">{this.errorMessage}</p>}
         <canvas class="canvas" ref={el => (this.canvasRef = el as HTMLCanvasElement)}></canvas>
       </div>
