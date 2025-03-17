@@ -1,4 +1,5 @@
 import { Component, State, h } from '@stencil/core';
+import heic2any from 'heic2any';
 
 @Component({
   tag: 'car-damage-uploader',
@@ -14,10 +15,29 @@ export class FileUpload {
   private canvasRef: HTMLCanvasElement;
   private videoRef: HTMLVideoElement;
 
-  private handleFileUpload(event: Event) {
+  private async handleFileUpload(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      const file = input.files[0];
+      let file = input.files[0];
+
+      const heicType = file.name.endsWith('.HEIC') || file.name.endsWith('.heic');
+      if (file.type === 'image/heic' || heicType) {
+        try {
+          const convertedBlob = (await heic2any({
+            blob: file,
+            toType: 'image/jpeg',
+            quality: 0.8,
+          })) as Blob;
+
+          file = new File([convertedBlob], file.name.replace('.HEIC', '.jpg'), {
+            type: 'image/jpeg',
+          });
+        } catch (error) {
+          this.errorMessage = 'Error converting HEIC file.';
+          return;
+        }
+      }
+
       this.uploadFile(file);
     }
   }
@@ -55,6 +75,7 @@ export class FileUpload {
     this.imageUrl = '';
     this.isCameraActive = false;
     this.canvasRef.style.display = 'none';
+    this.isLoading = false;
     if (this.videoRef && this.videoRef.srcObject) {
       const stream = this.videoRef.srcObject as MediaStream;
       stream.getTracks().forEach(track => track.stop());
@@ -192,11 +213,11 @@ export class FileUpload {
           </button>
         )}
 
-        {this.imageUrl && (
-          <button class="button reset-page" onClick={() => this.resetPage()}>
-            Reset Page
-          </button>
-        )}
+        {/* {this.imageUrl && ( */}
+        <button class="button reset-page" onClick={() => this.resetPage()}>
+          Reset Page
+        </button>
+        {/* )} */}
 
         {this.errorMessage && <p class="error">{this.errorMessage}</p>}
         <canvas class="canvas" ref={el => (this.canvasRef = el as HTMLCanvasElement)}></canvas>

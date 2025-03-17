@@ -11,12 +11,15 @@
     "generate": "stencil generate"
   },
   "devDependencies": {
-    "stencil-router-v2": "^0.6.0",
     "@stencil/core": "4.22.2",
     "@types/jest": "^29.5.6",
     "jest": "^29.7.0",
     "jest-cli": "^29.7.0",
-    "puppeteer": "^21.11.0"
+    "puppeteer": "^21.11.0",
+    "stencil-router-v2": "^0.6.0"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "heic2any": "^0.0.4"
+  }
 }
