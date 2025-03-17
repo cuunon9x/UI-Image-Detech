@@ -1,0 +1,123 @@
+/* Body - Thêm gradient background */
+:host {
+  display: block;
+  max-width: 100%;
+  margin: 0 auto;
+  font-family: 'Arial', sans-serif;
+  padding: 20px;
+  background: linear-gradient(135deg, #f9f9f9, #e3e3e3);
+  min-height: 100vh;
+}
+
+/* Header cố định */
+.header {
+  text-align: center;
+  font-size: 1.5em;
+  font-weight: bold;
+  padding: 15px;
+  background: #007bff;
+  color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Tiêu đề chính */
+h1 {
+  text-align: center;
+  color: #333;
+  font-size: 1.8em;
+  margin-top: 20px;
+}
+
+input[type='file']:hover {
+  border-color: #0056b3;
+}
+
+/* Lỗi */
+.error {
+  color: red;
+  text-align: center;
+  margin-top: 10px;
+  font-size: 1em;
+}
+
+/* Bounding box label */
+.bounding-box-label {
+  position: absolute;
+  background-color: rgba(255, 0, 0, 0.7);
+  color: white;
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-size: 16px;
+  pointer-events: none;
+}
+
+/* Đảm bảo container chính giữa màn hình */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Căn giữa theo chiều ngang */
+  justify-content: center; /* Căn giữa theo chiều dọc */
+  max-width: 800px;
+  margin: 20px auto;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+/* Canvas - Căn giữa */
+canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 10px auto;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+}
+
+/* File upload input */
+input[type='file'] {
+  display: block;
+  margin: 10px auto 20px;
+  padding: 10px;
+  border: 2px solid #007bff;
+  border-radius: 5px;
+  background-color: #fff;
+  cursor: pointer;
+  transition: border-color 0.3s;
+  width: 100%;
+  max-width: 300px;
+}
+
+/* 📱 Mobile (dưới 600px) */
+@media (max-width: 600px) {
+  .header {
+    font-size: 1.2em;
+    padding: 10px;
+  }
+
+  h1 {
+    font-size: 1.4em;
+  }
+
+  .container {
+    padding: 15px;
+  }
+
+  input[type='file'] {
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  canvas {
+    border-radius: 3px;
+    max-width: 90%;
+  }
+
+  .bounding-box-label {
+    font-size: 16px;
+    padding: 1px 4px;
+  }
+}
